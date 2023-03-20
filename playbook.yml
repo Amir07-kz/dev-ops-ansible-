@@ -1,0 +1,33 @@
+- name: Настройка удаленной машины
+  hosts: amirhan@10.211.55.21
+  become: yes
+
+  vars:
+    username: new_user
+
+  tasks:
+    - name: Создание нового пользователя
+      user:
+        name: "{{ username }}"
+        state: present
+        createhome: yes
+
+    - name: Копирование публичного ключа
+      authorized_key:
+        user: "{{ username }}"
+        key: "{{ lookup('file', '~/ .ssh/id_rsa.pub') }}"
+
+    - name: Отключение авторизации по паролю
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        backup: yes
+
+    - name: Создание директории в /opt/
+      file:
+        path: /opt/new_directory
+        state: directory
+        owner: "{{ username }}"
+        mode: '0755'
+
